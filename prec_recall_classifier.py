@@ -8,7 +8,9 @@ from collections import defaultdict
 
 NUM_TOP = 4
 
-THRESHOLD=float(0.75)
+THRESHOLD=float(0.7)
+
+if len(sys.argv)==2: THRESHOLD=float(sys.argv[1])
 
 VC_BERT=False
 
@@ -39,22 +41,24 @@ def main():
 		text = fields[1]
 		label = fields[2]
 		ans = int(fields[3])
-
+                
 		tmp = [ (float(x),i) for i,x in enumerate(fields[4:])]
 		score, order = sorted(tmp, key=lambda x:x[0], reverse=True)[0]
-		if VC_BERT == True:
-		    label_list = label.split(' [SEP] ')
-		    text_truth[text].append(label_list[ans])
-		    if score <THRESHOLD: continue
-		#                    print (true_label, label_list[order])
-		    text_prediction[text].append((label_list[order], score))
-		else:
-		    if ans == 1:
-		        text_truth[text].append(label)
-		    if score <THRESHOLD: continue
-		    if order ==1:
-	            text_prediction[text].append((label, score))
-	            if ans == 0 : print line
+                if VC_BERT == True:
+                    label_list = label.split(' [SEP] ')
+                    text_truth[text].append(label_list[ans])
+                    if score <THRESHOLD: continue
+#                    print (true_label, label_list[order])
+                    text_prediction[text].append((label_list[order], score))
+                else:
+                    if ans == 1:
+                        text_truth[text].append(label)
+                    if score <THRESHOLD: 
+                        if ans==1 and score>0.7: print ("\t".join([str(score),  line]) )
+                        continue
+                    if order ==1:
+                            text_prediction[text].append((label, score))
+                            if ans == 0 : print ("\t".join([str(score),  line]) )
 
 
 	tmp_text_prediction = defaultdict(list)
@@ -77,5 +81,6 @@ def main():
 		sys.stdout.write('%s\t%d\t%d\t%d\t%f\t%f\n' % (key, rn, wn, tn, rn*1.0/(rn+wn),rn*1.0/tn))
 	sys.stdout.write('sum:\t%d\t%d\t%d\t%f\t%f\n' % ( sum_rn, sum_wn, sum_tn, sum_rn*1.0/(sum_rn+sum_wn),sum_rn*1.0/sum_tn))
 
-if __name__ == "__main__":
+if __name__ == "__main__": 
 	main()
+
